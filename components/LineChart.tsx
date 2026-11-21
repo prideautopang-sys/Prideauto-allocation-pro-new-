@@ -44,7 +44,15 @@ const LineChart: React.FC<LineChartProps> = ({ chartData }) => {
                                 position: 'top' as const,
                                 labels: {
                                     color: textColor,
+                                    usePointStyle: true,
+                                    pointStyle: 'circle',
+                                    boxWidth: 10,
+                                    boxHeight: 10,
+                                    padding: 16,
                                 }
+                            },
+                            tooltip: {
+                                usePointStyle: true,
                             },
                             title: {
                                 display: false,
