@@ -3,6 +3,14 @@ import { sql } from '../../lib/db.js';
 import { withAuth, AuthenticatedRequest } from '../middleware/withAuth.js';
 import { Salesperson } from '../../types.js';
 
+let branchColumnEnsured = false;
+
+async function ensureBranchColumn() {
+  if (branchColumnEnsured) return;
+  await sql('ALTER TABLE salespersons ADD COLUMN IF NOT EXISTS branch VARCHAR(255)');
+  branchColumnEnsured = true;
+}
+
 const handler = async (req: AuthenticatedRequest, res: VercelResponse) => {
     const { id } = req.query;
 
@@ -13,19 +21,22 @@ const handler = async (req: AuthenticatedRequest, res: VercelResponse) => {
     // PUT (Update) a salesperson
     if (req.method === 'PUT') {
         try {
-            const { name, status } = req.body as Salesperson;
+            await ensureBranchColumn();
+            const { name, status, branch } = req.body as Salesperson;
 
-            if (!name || !status) {
+            if (!name || !name.trim() || !status) {
                 return res.status(400).json({ message: "Name and status are required." });
             }
 
+            const safeBranch = branch === 'มหาสารคาม' || branch === 'กาฬสินธุ์' ? branch : null;
+
             const query = `
                 UPDATE salespersons SET 
-                    name = $1, status = $2, updated_at = NOW()
-                WHERE id = $3
-                RETURNING id, name, status, created_at as "createdAt";
+                    name = $1, status = $2, branch = $3, updated_at = NOW()
+                WHERE id = $4
+                RETURNING id, name, status, branch, created_at as "createdAt";
             `;
-            const params = [name, status, id];
+            const params = [name.trim(), status, safeBranch, id];
             
             const { rows } = await sql(query, params);
             if (rows.length === 0) {

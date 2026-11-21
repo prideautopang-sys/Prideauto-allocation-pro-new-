@@ -3,16 +3,26 @@ import { sql } from '../../lib/db.js';
 import { withAuth, AuthenticatedRequest } from '../middleware/withAuth.js';
 import { Salesperson } from '../../types.js';
 
+let branchColumnEnsured = false;
+
+async function ensureBranchColumn() {
+  if (branchColumnEnsured) return;
+  await sql('ALTER TABLE salespersons ADD COLUMN IF NOT EXISTS branch VARCHAR(255)');
+  branchColumnEnsured = true;
+}
+
 const handler = async (req: AuthenticatedRequest, res: VercelResponse) => {
+  await ensureBranchColumn();
+
   // GET salespersons
   if (req.method === 'GET') {
     const { status } = req.query;
     try {
-      let query = 'SELECT id, name, status, created_at as "createdAt" FROM salespersons ORDER BY created_at ASC, name ASC';
-      const params = [];
+      let query = 'SELECT id, name, status, branch, created_at as "createdAt" FROM salespersons ORDER BY created_at ASC, name ASC';
+      const params: string[] = [];
       
       if (status === 'active') {
-        query = 'SELECT id, name, status, created_at as "createdAt" FROM salespersons WHERE status = $1 ORDER BY name ASC';
+        query = 'SELECT id, name, status, branch, created_at as "createdAt" FROM salespersons WHERE status = $1 ORDER BY name ASC';
         params.push('active');
       }
       
@@ -31,14 +41,16 @@ const handler = async (req: AuthenticatedRequest, res: VercelResponse) => {
         return res.status(403).json({ message: 'Forbidden: Insufficient permissions.' });
      }
      try {
-        const { name } = req.body as Salesperson;
-        if (!name) {
+        const { name, status, branch } = req.body as Salesperson;
+        if (!name || !name.trim()) {
             return res.status(400).json({ message: 'Name is required' });
         }
-        // New salespersons are active by default from the DB schema.
+        const safeStatus = status === 'inactive' ? 'inactive' : 'active';
+        const safeBranch = branch === 'มหาสารคาม' || branch === 'กาฬสินธุ์' ? branch : null;
+
         const { rows } = await sql(
-            'INSERT INTO salespersons (name) VALUES ($1) RETURNING id, name, status, created_at as "createdAt"',
-            [name]
+            'INSERT INTO salespersons (name, status, branch) VALUES ($1, $2, $3) RETURNING id, name, status, branch, created_at as "createdAt"',
+            [name.trim(), safeStatus, safeBranch]
         );
         return res.status(201).json(rows[0]);
      } catch (error: any) {

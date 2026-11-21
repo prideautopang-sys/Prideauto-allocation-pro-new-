@@ -41,6 +41,7 @@ const SalespersonTable: React.FC<SalespersonTableProps> = ({ salespersons, onEdi
           <tr>
             <th scope="col" className={`${thClasses} w-16 text-center`}>ลำดับ</th>
             <th scope="col" className={thClasses}>Name</th>
+            <th scope="col" className={thClasses}>สังกัด</th>
             <th scope="col" className={thClasses}>Created At</th>
             <th scope="col" className={thClasses}>Status</th>
             <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
@@ -53,6 +54,19 @@ const SalespersonTable: React.FC<SalespersonTableProps> = ({ salespersons, onEdi
                 {index + 1}
               </td>
               <td className={`${tdClasses} font-medium text-gray-900 dark:text-white`}>{sp.name}</td>
+              <td className={tdClasses}>
+                {sp.branch ? (
+                  <span className={`px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-md ${
+                    sp.branch === 'มหาสารคาม'
+                      ? 'bg-sky-100 text-sky-800 dark:bg-sky-900/50 dark:text-sky-300'
+                      : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300'
+                  }`}>
+                    {sp.branch}
+                  </span>
+                ) : (
+                  <span className="text-gray-400 dark:text-gray-500">-</span>
+                )}
+              </td>
               <td className={tdClasses}>{formatDate(sp.createdAt)}</td>
               <td className={tdClasses}>
                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${sp.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'} capitalize`}>

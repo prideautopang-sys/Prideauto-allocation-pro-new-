@@ -8,6 +8,10 @@ async function migrate() {
       ADD COLUMN IF NOT EXISTS test_drive_branch VARCHAR(255),
       ADD COLUMN IF NOT EXISTS test_drive_no VARCHAR(255);
     `);
+    await sql(`
+      ALTER TABLE salespersons
+      ADD COLUMN IF NOT EXISTS branch VARCHAR(255);
+    `);
     console.log('Migration successful');
   } catch (e) {
     console.error('Migration failed', e);

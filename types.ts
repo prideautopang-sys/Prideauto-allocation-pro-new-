@@ -65,11 +65,13 @@ export interface AppUser {
 }
 
 export type SalespersonStatus = 'active' | 'inactive';
+export type SalespersonBranch = 'มหาสารคาม' | 'กาฬสินธุ์';
 
 export interface Salesperson {
   id: string;
   name: string;
   status: SalespersonStatus;
+  branch?: SalespersonBranch | '';
   createdAt?: string;
 }
 

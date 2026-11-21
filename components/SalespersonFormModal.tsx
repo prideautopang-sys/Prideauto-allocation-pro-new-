@@ -11,11 +11,17 @@ interface SalespersonFormModalProps {
 
 const SalespersonFormModal: React.FC<SalespersonFormModalProps> = ({ isOpen, onClose, onSave, salespersonToEdit }) => {
   const getInitialState = (): Salesperson => {
-    return salespersonToEdit || {
-      id: '', // Will be ignored on create
-      name: '',
-      status: 'active',
-    };
+    return salespersonToEdit
+      ? {
+          ...salespersonToEdit,
+          branch: salespersonToEdit.branch || '',
+        }
+      : {
+          id: '', // Will be ignored on create
+          name: '',
+          status: 'active',
+          branch: '',
+        };
   };
 
   const [salesperson, setSalesperson] = useState<Salesperson>(getInitialState());
@@ -34,8 +40,12 @@ const SalespersonFormModal: React.FC<SalespersonFormModalProps> = ({ isOpen, onC
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!salesperson.name) {
-        alert("Salesperson name is required.");
+    if (!salesperson.name.trim()) {
+        alert("กรุณากรอกชื่อเซลล์");
+        return;
+    }
+    if (!salesperson.branch) {
+        alert("กรุณาเลือกสังกัด");
         return;
     }
     onSave(salesperson);
@@ -60,6 +70,15 @@ const SalespersonFormModal: React.FC<SalespersonFormModalProps> = ({ isOpen, onC
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
                 <input type="text" name="name" id="name" value={salesperson.name} onChange={handleChange} required
                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+              </div>
+              <div>
+                <label htmlFor="branch" className="block text-sm font-medium text-gray-700 dark:text-gray-300">สังกัด</label>
+                <select name="branch" id="branch" value={salesperson.branch || ''} onChange={handleChange} required
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                  <option value="">-- เลือกสังกัด --</option>
+                  <option value="มหาสารคาม">มหาสารคาม</option>
+                  <option value="กาฬสินธุ์">กาฬสินธุ์</option>
+                </select>
               </div>
               <div>
                 <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
