@@ -13,11 +13,17 @@ interface BarChartProps {
             backgroundColor: string;
         }[];
     };
+    onBarClick?: (label: string, value: number, index: number) => void;
 }
 
-const BarChart: React.FC<BarChartProps> = ({ chartData }) => {
+const BarChart: React.FC<BarChartProps> = ({ chartData, onBarClick }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const chartInstanceRef = useRef<any>(null);
+    const onBarClickRef = useRef(onBarClick);
+
+    useEffect(() => {
+        onBarClickRef.current = onBarClick;
+    }, [onBarClick]);
 
     useEffect(() => {
         if (chartInstanceRef.current) {
@@ -78,6 +84,35 @@ const BarChart: React.FC<BarChartProps> = ({ chartData }) => {
                         indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
+                        onHover: (event: any, _elements: any[], chart: any) => {
+                            if (!onBarClickRef.current) return;
+                            const rowElements = chart.getElementsAtEventForMode(
+                                event,
+                                'nearest',
+                                { intersect: false, axis: 'y' },
+                                true
+                            );
+                            if (chart.canvas) {
+                                chart.canvas.style.cursor = rowElements.length > 0 ? 'pointer' : 'default';
+                            }
+                        },
+                        onClick: (event: any, _elements: any[], chart: any) => {
+                            if (!onBarClickRef.current) return;
+                            const rowElements = chart.getElementsAtEventForMode(
+                                event,
+                                'nearest',
+                                { intersect: false, axis: 'y' },
+                                true
+                            );
+                            if (rowElements.length > 0) {
+                                const index = rowElements[0].index;
+                                const label = chart.data.labels?.[index];
+                                const value = chart.data.datasets?.[0]?.data?.[index];
+                                if (label !== undefined) {
+                                    onBarClickRef.current(String(label), Number(value ?? 0), index);
+                                }
+                            }
+                        },
                         layout: {
                             padding: {
                                 left: 10,
