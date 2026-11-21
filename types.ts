@@ -70,6 +70,7 @@ export interface Salesperson {
   id: string;
   name: string;
   status: SalespersonStatus;
+  createdAt?: string;
 }
 
 // Represents the combined data from the unified CarFormModal

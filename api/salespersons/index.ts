@@ -8,11 +8,11 @@ const handler = async (req: AuthenticatedRequest, res: VercelResponse) => {
   if (req.method === 'GET') {
     const { status } = req.query;
     try {
-      let query = 'SELECT id, name, status FROM salespersons ORDER BY name ASC';
+      let query = 'SELECT id, name, status, created_at as "createdAt" FROM salespersons ORDER BY created_at ASC, name ASC';
       const params = [];
       
       if (status === 'active') {
-        query = 'SELECT id, name, status FROM salespersons WHERE status = $1 ORDER BY name ASC';
+        query = 'SELECT id, name, status, created_at as "createdAt" FROM salespersons WHERE status = $1 ORDER BY name ASC';
         params.push('active');
       }
       
@@ -37,7 +37,7 @@ const handler = async (req: AuthenticatedRequest, res: VercelResponse) => {
         }
         // New salespersons are active by default from the DB schema.
         const { rows } = await sql(
-            'INSERT INTO salespersons (name) VALUES ($1) RETURNING id, name, status',
+            'INSERT INTO salespersons (name) VALUES ($1) RETURNING id, name, status, created_at as "createdAt"',
             [name]
         );
         return res.status(201).json(rows[0]);
